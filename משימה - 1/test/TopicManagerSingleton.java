@@ -1,11 +1,12 @@
 package test;
 
+import java.util.*;
 
 public class TopicManagerSingleton {
 
     public static class TopicManager{
         private static final TopicManager instance = new TopicManager();
-        private static Map<String, Topic> topics = new HashMap<>();
+        private static final Map<String, Topic> topics = new HashMap<>();
 
         private TopicManager(){
         }
