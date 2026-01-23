@@ -4,8 +4,7 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 import servlet.Servlet;
-import test.RequestParser;
-import test.RequestParser.RequestInfo;
+import server.RequestParser.RequestInfo;
 
 public class MyHTTPServer extends Thread implements HTTPServer {
     private final int port;
