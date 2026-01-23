@@ -14,32 +14,45 @@ public class RequestParser {
 
         Map<String, String> parameters = new HashMap<>();
         String path = uri;
+        
         if (uri.contains("?")) {
             String[] uriParts = uri.split("\\?");
             path = uriParts[0];
-            for (String param : uriParts[1].split("&")) {
+            String[] params = uriParts[1].split("&");
+            for (String param : params) {
                 String[] pair = param.split("=");
                 if (pair.length > 1) parameters.put(pair[0], pair[1]);
             }
         }
-        String[] uriSegments = Arrays.stream(path.split("/")).filter(s -> !s.isEmpty()).toArray(String[]::new);
+        
+        String[] uriSegments = Arrays.stream(path.split("/"))
+                .filter(s -> !s.isEmpty())
+                .toArray(String[]::new);
 
         String line;
-        int contentLength = 0;
-        while (!(line = reader.readLine()).isEmpty()) {
-            if (line.toLowerCase().startsWith("content-length:")) {
-                contentLength = Integer.parseInt(line.split(":")[1].trim());
-            }
-            if (line.contains("filename=")) {
-                parameters.put("filename", line.split("filename=")[1].replace("\"", ""));
-            }
+        while ((line = reader.readLine()) != null && !line.isEmpty()) {
         }
 
+        StringBuilder contentBuilder = new StringBuilder();
+        
+        while (reader.ready()) {
+            line = reader.readLine();
+            if (line == null) break;
+            
+            if (line.isEmpty()) continue;
+            
+            if (line.contains("filename=")) {
+                String fileVal = line.split("filename=")[1].trim();
+                parameters.put("filename", fileVal);
+                continue;
+            }
+            
+            contentBuilder.append(line).append("\n");
+        }
+        
         byte[] content = null;
-        if (contentLength > 0) {
-            char[] buffer = new char[contentLength];
-            reader.read(buffer, 0, contentLength);
-            content = new String(buffer).getBytes();
+        if (contentBuilder.length() > 0) {
+            content = contentBuilder.toString().getBytes();
         }
 
         return new RequestInfo(httpCommand, uri, uriSegments, parameters, content);
