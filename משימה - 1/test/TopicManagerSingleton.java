@@ -3,33 +3,31 @@ package test;
 import java.util.*;
 
 public class TopicManagerSingleton {
+    private static final TopicManager instance = new TopicManager();
+    private static final Map<String, Topic> topics = new HashMap<>();
 
     public static class TopicManager{
-        private static final TopicManager instance = new TopicManager();
-        private static final Map<String, Topic> topics = new HashMap<>();
 
-        private TopicManager(){
-        }
+        private TopicManager(){}
 
         public Topic getTopic(String name){
-            if (topics.containsKey(name)) {
-                return topics.get(name);
-            } else {
-                Topic newTopic = new Topic(name);
-                topics.put(name, newTopic);
-                return newTopic;
-            }
+            return topics.computeIfAbsent(name, Topic::new);
         }
+
         public Collection<Topic> getAllTopics() {
             return topics.values();
         }
+        
+        public static TopicManager get(){
+            return instance;
+        }
+    
+        public void clear(){
+            topics.clear();
+        }
     }
-
+   
     public static TopicManager get(){
-        return TopicManager.instance;
-    }
-
-    public void clear(){
-        TopicManager.topics.clear();
+        return TopicManager.get();
     }
 }
