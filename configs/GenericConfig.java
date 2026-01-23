@@ -3,33 +3,40 @@ package configs;
 import java.util.*;
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.IOException;
+import test.Agent;
+import test.ParallelAgent;
+import java.lang.reflect.Constructor;
 
 
 public class GenericConfig {
     private String conf_file;
+    private final List<Agent> agents = new ArrayList<>();
 
     public void setConfFile(String conf_file_name) {
         this.conf_file = conf_file_name;
     }
 
     public void create(){
-        List<String> lines = new ArrayList<>();
         try (BufferedReader reader = new BufferedReader(new FileReader(conf_file))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                lines.add(line);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+        String className;
+        while ((className = reader.readLine()) != null) {
+            String lineInputs = reader.readLine();
+            String lineOutputs = reader.readLine();
+            if (lineInputs == null || lineOutputs == null) break;
+            String[] inputs = lineInputs.split(",");
+            String[] outputs = lineOutputs.split(",");
+            Class<?> clazz = Class.forName(className);
+            Constructor<?> constructor = clazz.getConstructor(String[].class, String[].class);
+            Agent agent = (Agent) constructor.newInstance((Object) inputs, (Object) outputs);
+            ParallelAgent pa = new ParallelAgent(agent);
+            agents.add(pa);
         }
-        if (lines.size() % 3 != 0) {
-            throw new IllegalArgumentException("Configuration file format is incorrect.");
-        }
-        Class<?> cls = Class.forName(conf_file);
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
     }
 
     public void close(){
-        ConfigManager.get().closeConfig();
+        this.agents.forEach(Agent::close);
     }
 }
